@@ -1,0 +1,16 @@
+dist
+.git
+.build
+.idea
+.jshintrc
+.sass-cache
+.vscode
+coverage
+jsconfig.json
+node_modules
+.DS_Store
+*.map
+*.log
+*.swp
+*.orig
+src/shared/translations

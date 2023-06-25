@@ -1,0 +1,97 @@
+#clone:
+#  git:
+#    image: woodpeckerci/plugin-git
+#    settings:
+#      recursive: true
+#      submodule_update_remote: true
+
+pipeline:
+  prepare_repo:
+    image: alpine:3
+    commands:
+      - apk add git
+      - git submodule init
+      - git submodule update --recursive --remote
+
+  prettier_markdown_check:
+    image: tmknom/prettier
+    commands:
+      - prettier -c . "!dist" "!lemmy-docs" "!lemmy-translations" "!joinlemmy-translations" "!lemmy-js-client" "!lemmy-stats-crawler"
+
+  yarn:
+    image: node:14-alpine
+    commands:
+      - yarn
+
+  yarn_lint:
+    image: node:14-alpine
+    commands:
+      - yarn lint
+
+  yarn_build_dev:
+    image: node:14-alpine
+    commands:
+      - yarn build:dev
+
+  nightly_instance_crawl:
+    image: node:14-alpine
+    commands:
+      # libpq and openssl can probably be removed after lemmy dep is upgraded to 0.16.4+
+      - apk add cargo pkgconfig openssl openssl-dev libpq libpq-dev
+      - yarn crawl
+    when:
+      event:
+        - cron
+
+  nightly_build_and_push_to_docker_hub:
+    image: woodpeckerci/plugin-docker-buildx
+    settings:
+      dockerfile: Dockerfile
+      repo: dessalines/joinlemmy-site
+      tag: latest
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+    when:
+      event:
+        - cron
+
+  release_instance_crawl:
+    image: node:14-alpine
+    commands:
+      # libpq and openssl can probably be removed after lemmy dep is upgraded to 0.16.4+
+      - apk add cargo pkgconfig openssl openssl-dev libpq libpq-dev
+      - yarn crawl
+    when:
+      event: tag
+
+  release_build_and_push_to_docker_hub:
+    image: woodpeckerci/plugin-docker-buildx
+    settings:
+      dockerfile: Dockerfile
+      repo: dessalines/joinlemmy-site
+      tag: latest
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+    when:
+      event: tag
+
+  notify_on_failure:
+    image: alpine:3
+    commands:
+      - apk add curl
+      - "curl -d'joinlemmy-site build failed: ${DRONE_BUILD_LINK}' ntfy.sh/lemmy_drone_ci"
+    when:
+      status:
+        - failure
+
+  notify_on_tag_deploy:
+    image: alpine:3
+    commands:
+      - apk add curl
+      - "curl -d'joinlemmy-site:${DRONE_TAG} deployed' ntfy.sh/lemmy_drone_ci"
+    when:
+      event: tag

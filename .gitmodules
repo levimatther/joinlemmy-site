@@ -1,0 +1,19 @@
+[submodule "lemmy-docs"]
+	path = lemmy-docs
+	url = https://github.com/lemmynet/lemmy-docs
+	branch = main
+[submodule "joinlemmy-translations"]
+	path = joinlemmy-translations
+	url = https://github.com/lemmynet/joinlemmy-translations
+	branch = main
+[submodule "lemmy-translations"]
+	path = lemmy-translations
+	url = https://github.com/lemmynet/lemmy-translations
+	branch = main
+[submodule "lemmy-js-client"]
+	path = lemmy-js-client
+	url = https://github.com/LemmyNet/lemmy-js-client
+	branch = release/v0.18
+[submodule "lemmy-stats-crawler"]
+	path = lemmy-stats-crawler
+	url = https://github.com/LemmyNet/lemmy-stats-crawler.git
